@@ -140,9 +140,6 @@ The project includes comprehensive telemetry:
 
 Enable diagnostics in `ScrubFeatureFlags.swift`.
 
-## License
-
-[Choose your license - MIT, Apache 2.0, etc.]
 
 ## Contact
 
