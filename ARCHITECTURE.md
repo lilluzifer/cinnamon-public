@@ -261,27 +261,52 @@ Helps identify reverse bottlenecks:
 
 ## Current Issues (Help Needed!)
 
-### Known Problems
+### 🔴 CRITICAL: Admission Deadlock
 
-1. **Backward scrubbing lag spikes**
-   - Visible performance degradation when scrubbing in reverse
-   - Frame delivery delays
+**⚠️ See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for complete analysis and proposed solutions.**
 
-2. **Stale frames**
-   - Occasionally displays old frames when changing direction
-   - Cache invalidation issues
+**Root Cause:** VT-12785 errors cause decode tasks to fail without releasing admission slots, leading to:
+- Admission counter stuck at `10/8` (over limit!)
+- `pending_cleanup=false` so watchdog never triggers
+- Landing zone starves (`warmBehind=0`, `window_fill%=0.0`)
+- Renderer stuck on stale "future_frame" placeholders
+- Both forward AND backward scrubbing break after first error
 
-3. **VT Error -12785**
-   - `kVTVideoDecoderBadDataErr` during rapid direction changes
-   - IDR frame alignment problems
+**Key Problem Files:**
+- `AdmissionController.swift:106` - Counter leak on task failure
+- `IntegratedScrubPipeline.swift:595` - Watchdog doesn't trigger
+- `EnhancedScrubDecoder.swift:1677` - VT-12785 not handled
+- `IntegratedScrubPipeline.swift:97` - Tasks don't always call `finishDecodeJob`
+
+**Proposed Solutions:**
+1. Force cleanup on VT-12785 errors
+2. Make stuck-task timeout more aggressive (50ms instead of 150ms)
+3. Add admission counter validation/failsafe
+4. Guarantee task completion with `defer` blocks
+
+### Other Known Problems
+
+1. **Multi-layer complexity**
+   - NLE with multiple clips/layers
+   - One stuck layer stalls entire composition
+   - Need per-clip timeout + global failsafe
+
+2. **Stale frames on direction change**
+   - Cache invalidation timing issues
+   - Related to admission deadlock
+
+3. **IDR frame alignment**
+   - VT-12785 often triggered by GOP boundary issues
+   - Need better IDR detection/preroll
 
 ### Areas to Investigate
 
-- **Admission Control Logic** - Are critical slots being correctly allocated for reverse?
-- **GOP Coalescing** - Is reuse/retarget/cancel working correctly during direction changes?
-- **Landing Zone Prediction** - Are warm frames being correctly predicted and cached?
-- **VT Session Management** - Should we use persistent sessions or recreate on direction change?
-- **Cache Pruning** - Is `pruneHistory` too aggressive or not aggressive enough?
+- **Admission Control Logic** - Counter leak on error paths
+- **GOP Coalescing** - Interaction with stuck tasks
+- **Landing Zone Prediction** - Starvation when admission blocked
+- **VT Session Management** - Should rebuild on -12785?
+- **Task Lifecycle** - Guaranteed cleanup on all error paths
+- **Multi-clip coordination** - Per-clip vs global admission
 
 ---
 

@@ -15,9 +15,17 @@ This project is in active development. **I'm currently experiencing issues with 
 - Layer-based composition
 
 ### Known Issues ❌
-- **Backward scrubbing is laggy** with visible lag spikes
-- Occasional stale frames when scrubbing backwards
-- VT error -12785 (kVTVideoDecoderBadDataErr) in some cases
+
+**🔴 CRITICAL DEADLOCK** - See [KNOWN_ISSUES.md](KNOWN_ISSUES.md)
+- **Admission counter deadlock** - VT-12785 errors cause slots to wedge at 10/8
+- **Landing zone starvation** - `warmBehind=0`, `window_fill%=0.0`
+- **Renderer stuck** - Shows only stale "future_frame" placeholders
+- **Both forward AND backward scrubbing break** after first VT error
+
+**Additional Issues:**
+- Multi-layer composition complexity (NLE with multiple clips)
+- Watchdog doesn't trigger when `pending_cleanup=false`
+- Failed decode tasks don't release admission slots
 
 ## Tech Stack
 
