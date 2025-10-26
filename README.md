@@ -32,20 +32,28 @@ This project is in active development. **I'm currently experiencing issues with 
 
 ## Architecture Overview
 
+**📚 See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system architecture and reverse scrubbing flow.**
+
 ### Playback System
 The playback system consists of several key components:
 
-- **`IntegratedScrubPipeline`** - Main scrubbing coordinator
-- **`EnhancedScrubDecoder`** - Advanced frame decoder with caching
+- **`ScrubCoordinator`** - Orchestrates scrub operations with 120ms lookahead
+- **`IntegratedScrubPipeline`** - Main scrubbing pipeline with Phase-3 decoder
+- **`EnhancedScrubDecoder`** - Advanced frame decoder with persistent VT sessions
+- **`VelocityPredictor`** - Predicts timeline movement for pre-warming
+- **`LandingZoneManager`** - Direction-aware frame pre-warming
+- **`GOPCoalescingManager`** - Prevents redundant decodes on direction changes
 - **`TransportController`** - Transport controls and state management
 - **`FrameHistoryManager`** - Manages decoded frame history
 - **`GOPAnalyzer`** - Analyzes H.264 GOP structure
 
 ### Key Features
 - Persistent VT decompression sessions for performance
-- GOP-aware frame decoding
+- GOP-aware frame decoding with reuse logic
+- Velocity-based prediction and landing zones
 - Multi-threaded frame extraction
 - Adaptive quality management
+- Admission control with reverse-specific critical slots
 - Comprehensive telemetry and diagnostics
 
 ## Getting Started
