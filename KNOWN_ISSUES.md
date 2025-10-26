@@ -2,8 +2,22 @@
 
 ## 🔴 CRITICAL: Admission Deadlock via VT-12785 Errors
 
-### Symptom
-Both backward AND forward scrubbing become laggy or completely stuck, showing only stale "future_frame" placeholders in the renderer.
+### Symptoms
+
+**1. Slow backward scrubbing (< 2x speed):**
+- Frames are imprecise, showing ping-pong effect
+- Playhead jumps between adjacent frames instead of smooth progression
+- Not the expected frame for the scrub position
+
+**2. Fast backward scrubbing (> 3x speed):**
+- Frames don't load in time
+- Black frames appear in the viewer
+- Landing zone completely empty
+
+**3. Complete pipeline freeze (after VT errors):**
+- Both forward AND backward scrubbing stuck
+- Only stale "future_frame" placeholders shown
+- Renderer stuck on old frames (250ms+ age)
 
 ### Root Cause Analysis
 
@@ -198,12 +212,22 @@ The deadlock can occur **per-clip** or **globally**:
 
 ## Reproduction Steps
 
+### For Ping-Pong Effect (Slow Back Scrubbing)
+1. **Load a video** (H.264)
+2. **Slowly scrub backward** (< 2x speed)
+3. **Observe:** Frames jump back and forth, not precise to playhead position
+
+### For Black Frames (Fast Back Scrubbing)
+1. **Load a video** (H.264)
+2. **Rapidly scrub backward** (> 3x speed)
+3. **Observe:** Black frames appear, landing zone empty (`window_fill%=0.0`)
+
+### For Complete Deadlock
 1. **Load a video** (H.264, multi-layer timeline)
-2. **Scrub forward** - works fine initially
-3. **Scrub backward rapidly** - trigger VT-12785 errors
-4. **Continue scrubbing** - admission wedges at 10/8
-5. **Observe:** Landing zone stays empty, renderer stuck on "future_frame"
-6. **Result:** Both forward AND backward scrubbing now broken
+2. **Scrub backward rapidly** - trigger VT-12785 errors
+3. **Continue scrubbing** - admission wedges at 10/8
+4. **Observe:** Landing zone stays empty, renderer stuck on "future_frame"
+5. **Result:** Both forward AND backward scrubbing now broken
 
 ---
 
