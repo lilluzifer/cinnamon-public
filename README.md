@@ -48,25 +48,28 @@ The playback system consists of several key components:
 - Adaptive quality management
 - Comprehensive telemetry and diagnostics
 
-## Building the Project
+## Getting Started
+
+**📖 See [QUICKSTART.md](QUICKSTART.md) for detailed build and usage instructions.**
 
 ### Requirements
 - Xcode 15.0 or later
 - macOS 14.0 (Sonoma) or later
 - Swift 5.9 or later
+- A H.264 video file for testing
 
-### Build Steps
+### Quick Build
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/cinnamon-public.git
+git clone https://github.com/lilluzifer/cinnamon-public.git
 cd cinnamon-public
 
 # Open in Xcode
 open cinnamon.xcodeproj
 
-# Or build from command line
-xcodebuild -project cinnamon.xcodeproj -scheme cinnamon -configuration Debug build
+# Build and run (Cmd+R)
+# Then import a video file to test scrubbing
 ```
 
 ## Project Structure
